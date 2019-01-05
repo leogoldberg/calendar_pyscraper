@@ -4,7 +4,7 @@ from bs4 import BeautifulSoup
 from csv import writer
 from datetime import *
 
-response = requests.get('http://www.sfu.ca/outlines.html?2019/spring/cmpt/295/d100')
+response = requests.get('http://www.sfu.ca/outlines.html?2019/spring/cmpt/371/d200')
 
 soup = BeautifulSoup(response.text, 'html.parser')
 # get_text()
@@ -33,6 +33,22 @@ def date_split(date):
         print("Ill formated date string")
 
 
+def time_convert(time):
+    period = time[-2:]
+    hour = re.search('\d+(?=:)', time)[0]
+    minute = re.search('(?<=:)\d+', time)[0]
+    if period == "AM":
+        if int(hour) < 10:
+            return "0"+hour+":"+minute
+        else:
+            return hour+":"+minute
+    else:
+        if int(hour) == 12:
+            return hour+":"+minute
+        hour = str(int(hour)+12)
+        return hour+":"+minute
+
+
 def room_parser(room, time_day):
     # anything followed by space followed by one or more digits
     room_info = re.search('(.*)\s\d+', room)[0]
@@ -58,9 +74,14 @@ if(len(room_check) < 7):
     name = name_parser(name)
     info = room_parser(room, time_day)
     date_list = date_split(info[3])
+    start_time = time_convert(info[1])
+    end_time = time_convert(info[2])
     print(name)
     print(info)
     print(date_list)
+    print(start_time)
+    print(end_time)
+
 
 else:
     room_times1 = room_times.contents[2].find_next_sibling()
@@ -76,8 +97,16 @@ else:
     info2 = room_parser(room2, time_day2)
     date_list1 = date_split(info1[3])
     date_list2 = date_split(info2[3])
+    start_time1 = time_convert(info1[1])
+    end_time1 = time_convert(info1[2])
+    start_time2 = time_convert(info2[1])
+    end_time2 = time_convert(info2[2])
     print(name)
     print(info1)
     print(info2)
     print(date_list1)
     print(date_list2)
+    print(start_time1)
+    print(end_time1)
+    print(start_time2)
+    print(end_time2)
