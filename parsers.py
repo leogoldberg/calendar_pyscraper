@@ -1,3 +1,5 @@
+import re
+
 
 def date_split(date):
     date_list = []
@@ -11,8 +13,9 @@ def date_split(date):
     elif date_len == 2:
         date_list = [date]
         return date_list
+    # something wrong with location, i.e TBA locatoin
     else:
-        print("Ill formated date string")
+        return "Bad Date String"
 
 
 def time_convert(time):
@@ -33,7 +36,10 @@ def time_convert(time):
 
 def room_parser(room, time_day):
     # anything followed by space followed by one or more digits
-    room_info = re.search('(.*)\s\d+', room)[0]
+    print("the room is " + room)
+    if room == "Location: TBA":
+        return "None"
+    room_info = re.search('(.*)\s(\d+|[A-Z]+)(?=,)', room)[0]
     time_start = re.search('\d+\:\d+\s[a-zA-Z]+', time_day)[0]
     time_end = re.search('(?<=– )(.*)', time_day)[0]  # match everything after pesky en dash!
 
@@ -47,27 +53,29 @@ def name_parser(name):
     return re.search('(?<=-\s)(.*)$', name)[0]  # match everything after '- '
 
 
-if(len(room_check) < 7):
+def single_room_parser(room_times, name):
     room_times = room_times.contents[2].find_next_sibling()
     time_day = room_times.contents[0]
+    print(room_times.contents[0])
+    if room_times.contents[0] == "Location: TBA":
+        return "None"
     room = room_times.contents[2]
-
     name = name_parser(name)
     info = room_parser(room, time_day)
-    date_list = date_split(info[3])
-    start_time = time_convert(info[1])
-    end_time = time_convert(info[2])
+    if info != "None":
+        date_list = date_split(info[3])
+        start_time = time_convert(info[1])
+        end_time = time_convert(info[2])
+        print(date_list)
+    else:
+        return "None"
+    if date_list != "Bad Date String":
+        return [name, info[0], start_time, end_time, date_list]
+    else:
+        return "None"
 
-    for day in date_list:
-        row = [info[0], day, start_time, end_time, name]
-        csv_writer.writerow(row)
-    # print(name)
-    # print(info)
-    # print(date_list)
-    # print(start_time)
-    # print(end_time)
 
-else:
+def double_room_parser(room_times, room_check, name):
     room_times1 = room_times.contents[2].find_next_sibling()
     time_day1 = room_times1.contents[0]
     room1 = room_times1.contents[2]
@@ -85,9 +93,4 @@ else:
     end_time1 = time_convert(info1[2])
     start_time2 = time_convert(info2[1])
     end_time2 = time_convert(info2[2])
-    for day in date_list1:
-        row = [info1[0], day, start_time1, end_time1, name]
-        csv_writer.writerow(row)
-    for day in date_list2:
-        row = [info2[0], day, start_time2, end_time2, name]
-        csv_writer.writerow(row)
+    return [name, info1[0], start_time1, end_time1, date_list1, info2[0], start_time2, end_time2, date_list2]
