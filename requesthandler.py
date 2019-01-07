@@ -1,12 +1,41 @@
 import requests
 from bs4 import BeautifulSoup
 
+
+# get departments
+def get_departments():
+    link_list = []
+    response = requests.get(
+        'https://www.sfu.ca/students/calendar/2019/spring/courses.html')
+    alphabet = 'abcdefghijklmnoqrstuvwxyz'
+    soup = BeautifulSoup(response.text, 'html.parser')
+    for letter in alphabet:  # works for all except p
+        departments = soup.find(attrs={"name": letter})
+        print(departments)
+        if departments:
+            departments = departments.find_next_sibling().find_next_sibling()
+            print(departments)
+            if departments:
+                links = departments.find_all('a')
+                for link in links:
+                    link = link['href']
+                    link_list.append("https://www.sfu.ca"+link)
+
+    links = soup.find_all(attrs={"name": "p"})[
+        1].find_next_sibling().find_next_sibling().find_all('a')
+    for link in links:
+        link = link['href']
+        link_list.append("https://www.sfu.ca"+link)
+    return link_list
+
+# finding courses:
+
+
 # returns list of courses offered by department in the spring term
 
 
-def get_courses(department):
-    response = requests.get(
-        'https://www.sfu.ca/students/calendar/2019/spring/courses/'+department+'.html')
+def get_courses(link):
+    response = requests.get(link)
 
     soup = BeautifulSoup(response.text, 'html.parser')
 
